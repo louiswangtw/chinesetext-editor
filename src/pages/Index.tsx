@@ -1,11 +1,16 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import ChineseTextEditor from '../components/ChineseTextEditor';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background py-8">
+      <div className="container mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-4">中文富文本编辑器</h1>
+          <p className="text-xl text-muted-foreground">
+            支持实时搜索、高亮和替换功能的中文文本编辑器
+          </p>
+        </div>
+        <ChineseTextEditor />
       </div>
     </div>
   );

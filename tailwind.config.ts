@@ -61,6 +61,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				editor: {
+					background: 'hsl(var(--editor-background))',
+					border: 'hsl(var(--editor-border))',
+					'highlight-search': 'hsl(var(--editor-highlight-search))',
+					'highlight-replace': 'hsl(var(--editor-highlight-replace))',
+					'highlight-current': 'hsl(var(--editor-highlight-current))'
 				}
 			},
 			borderRadius: {
