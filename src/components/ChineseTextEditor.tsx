@@ -5,7 +5,7 @@ import { SearchHighlight } from '../extensions/SearchHighlight'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card, CardContent } from './ui/card'
-import { Search, Replace, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Replace, ChevronLeft, ChevronRight, Upload } from 'lucide-react'
 
 interface SearchMatch {
   from: number
@@ -22,6 +22,7 @@ const ChineseTextEditor: React.FC = () => {
   const [isReplaceMode, setIsReplaceMode] = useState(false)
   
   const editorRef = useRef<any>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -36,7 +37,7 @@ const ChineseTextEditor: React.FC = () => {
     `,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4',
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none p-4 max-w-none',
       },
     },
   })
@@ -276,6 +277,42 @@ const ChineseTextEditor: React.FC = () => {
     }
   }, [replaceQuery, isReplaceMode, handleSearch])
 
+  // Handle file upload
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !file.name.endsWith('.txt')) {
+      alert('请选择一个 .txt 文件')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const content = e.target?.result as string
+      if (editor && content) {
+        // Convert plain text to HTML paragraphs
+        const htmlContent = content
+          .split('\n')
+          .map(line => line.trim() ? `<p>${line}</p>` : '<p><br></p>')
+          .join('')
+        
+        editor.commands.setContent(htmlContent)
+        clearHighlights()
+        setMatches([])
+        setCurrentMatchIndex(-1)
+      }
+    }
+    reader.readAsText(file, 'UTF-8')
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }, [editor, clearHighlights])
+
+  const triggerFileUpload = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
   if (!editor) {
     return <div>Loading editor...</div>
   }
@@ -284,6 +321,28 @@ const ChineseTextEditor: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto p-6 space-y-4">
       <Card>
         <CardContent className="p-6 space-y-4">
+          {/* File Upload */}
+          <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center space-x-2">
+              <Upload className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">文件操作</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerFileUpload}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              上传 TXT 文件
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+          </div>
           {/* Search Bar */}
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
@@ -379,11 +438,13 @@ const ChineseTextEditor: React.FC = () => {
       <Card>
         <CardContent className="p-0">
           <div className="border border-editor-border rounded-lg bg-editor-background">
-            <EditorContent 
-              editor={editor}
-              ref={editorRef}
-              className="min-h-[400px]"
-            />
+            <div className="h-96 overflow-y-auto">
+              <EditorContent 
+                editor={editor}
+                ref={editorRef}
+                className="h-full"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
