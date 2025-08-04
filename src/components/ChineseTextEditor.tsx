@@ -420,6 +420,21 @@ const ChineseTextEditor: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => {
+                  setSearchQuery('')
+                  setReplaceQuery('')
+                  setReplaceText('')
+                  clearHighlights()
+                  setIsReplaceMode(false)
+                  setCurrentMatchIndex(-1)
+                  setMatches([])
+                }}
+                size="sm"
+              >
+                清空内容
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
                   clearHighlights()
                   setIsReplaceMode(false)
                   setCurrentMatchIndex(-1)
