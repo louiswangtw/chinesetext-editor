@@ -67,7 +67,8 @@ export default {
 					border: 'hsl(var(--editor-border))',
 					'highlight-search': 'hsl(var(--editor-highlight-search))',
 					'highlight-replace': 'hsl(var(--editor-highlight-replace))',
-					'highlight-current': 'hsl(var(--editor-highlight-current))'
+					'highlight-current': 'hsl(var(--editor-highlight-current))',
+					'highlight-invalid': 'hsl(var(--editor-highlight-invalid))'
 				}
 			},
 			borderRadius: {

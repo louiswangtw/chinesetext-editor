@@ -40,6 +40,7 @@ All colors MUST be HSL.
     --editor-highlight-search: 60 100% 80%;
     --editor-highlight-replace: 195 100% 85%;
     --editor-highlight-current: 39 100% 70%;
+    --editor-highlight-invalid: 8 90% 80%;
     --editor-background: 0 0% 98%;
     --editor-border: 214.3 31.8% 91.4%;
 

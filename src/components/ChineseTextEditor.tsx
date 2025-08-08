@@ -1,11 +1,14 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { SearchHighlight } from '../extensions/SearchHighlight'
+import { LevelHighlight } from '../extensions/LevelHighlight'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card, CardContent } from './ui/card'
 import { Search, Replace, ChevronLeft, ChevronRight, Upload } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { Level, getAllowedSet } from '../data/charsets'
 
 interface SearchMatch {
   from: number
@@ -20,14 +23,18 @@ const ChineseTextEditor: React.FC = () => {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1)
   const [matches, setMatches] = useState<SearchMatch[]>([])
   const [isReplaceMode, setIsReplaceMode] = useState(false)
+  const [level, setLevel] = useState<Level>('beginner')
   
   const editorRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<number | null>(null)
+  const allowedSet = useMemo(() => getAllowedSet(level), [level])
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       SearchHighlight,
+      LevelHighlight,
     ],
     content: `
       <h2>中文文本编辑器</h2>
@@ -42,13 +49,11 @@ const ChineseTextEditor: React.FC = () => {
     },
   })
 
-  // Clear all highlights
+  // Clear all search/replace highlights (searchHighlight only)
   const clearHighlights = useCallback(() => {
     if (!editor) return
-    
     const { tr } = editor.state
     let modified = false
-    
     editor.state.doc.descendants((node, pos) => {
       if (node.marks) {
         node.marks.forEach(mark => {
@@ -59,10 +64,25 @@ const ChineseTextEditor: React.FC = () => {
         })
       }
     })
-    
-    if (modified) {
-      editor.view.dispatch(tr)
-    }
+    if (modified) editor.view.dispatch(tr)
+  }, [editor])
+
+  // Clear only level highlights
+  const clearLevelHighlights = useCallback(() => {
+    if (!editor) return
+    const { tr } = editor.state
+    let modified = false
+    editor.state.doc.descendants((node, pos) => {
+      if (node.marks) {
+        node.marks.forEach(mark => {
+          if (mark.type.name === 'levelHighlight') {
+            tr.removeMark(pos, pos + node.nodeSize, mark.type)
+            modified = true
+          }
+        })
+      }
+    })
+    if (modified) editor.view.dispatch(tr)
   }, [editor])
 
   // Find all matches for a given query
@@ -115,6 +135,37 @@ const ChineseTextEditor: React.FC = () => {
     
     editor.view.dispatch(tr)
   }, [editor])
+
+  // Level checking: find invalid characters and highlight them
+  const highlightInvalidChars = useCallback(() => {
+    if (!editor) return
+    clearLevelHighlights()
+    const { tr } = editor.state
+    editor.state.doc.descendants((node, pos) => {
+      if (node.isText && node.text) {
+        const text = node.text
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i]
+          if (ch.trim() === '') continue // ignore whitespace
+          if (!allowedSet.has(ch)) {
+            tr.addMark(
+              pos + i,
+              pos + i + 1,
+              editor.schema.marks.levelHighlight.create({ color: 'invalid', type: 'level' })
+            )
+          }
+        }
+      }
+    })
+    editor.view.dispatch(tr)
+  }, [editor, allowedSet, clearLevelHighlights])
+
+  const scheduleLevelCheck = useCallback(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    debounceRef.current = window.setTimeout(() => {
+      highlightInvalidChars()
+    }, 250)
+  }, [highlightInvalidChars])
 
   // Handle search
   const handleSearch = useCallback((query: string) => {
@@ -277,6 +328,17 @@ const ChineseTextEditor: React.FC = () => {
     }
   }, [replaceQuery, isReplaceMode, handleSearch])
 
+  // Level check: on editor updates and level changes
+  useEffect(() => {
+    if (!editor) return
+    editor.on('update', scheduleLevelCheck)
+    // initial run
+    scheduleLevelCheck()
+    return () => {
+      editor.off('update', scheduleLevelCheck)
+    }
+  }, [editor, scheduleLevelCheck, level])
+
   // Handle file upload
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -297,6 +359,7 @@ const ChineseTextEditor: React.FC = () => {
         
         editor.commands.setContent(htmlContent)
         clearHighlights()
+        clearLevelHighlights()
         setMatches([])
         setCurrentMatchIndex(-1)
       }
@@ -321,6 +384,24 @@ const ChineseTextEditor: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto p-6 space-y-4">
       <Card>
         <CardContent className="p-6 space-y-4">
+          {/* Level Selector */}
+          <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium">等級檢查</span>
+            </div>
+            <Select value={level} onValueChange={(v) => setLevel(v as Level)}>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="選擇等級" />
+              </SelectTrigger>
+              <SelectContent className="z-50">
+                <SelectItem value="beginner">Beginner (初級)</SelectItem>
+                <SelectItem value="elementary">Elementary (基礎)</SelectItem>
+                <SelectItem value="intermediate">Intermediate (中級)</SelectItem>
+                <SelectItem value="upperIntermediate">Upper Intermediate (中高級)</SelectItem>
+                <SelectItem value="advanced">Advanced (高級)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {/* File Upload */}
           <div className="flex items-center justify-between border-b pb-4">
             <div className="flex items-center space-x-2">
@@ -413,6 +494,7 @@ const ChineseTextEditor: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   clearHighlights()
+                  clearLevelHighlights()
                   setIsReplaceMode(false)
                   setCurrentMatchIndex(-1)
                   setMatches([])
