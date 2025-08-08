@@ -441,25 +441,6 @@ const ChineseTextEditor: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Legend */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-editor-highlight-search rounded"></div>
-              <span>搜索匹配</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-editor-highlight-current rounded"></div>
-              <span>当前匹配</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-editor-highlight-replace rounded"></div>
-              <span>已替换</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
