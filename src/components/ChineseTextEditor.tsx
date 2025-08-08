@@ -352,29 +352,6 @@ const ChineseTextEditor: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
             />
-            {matches.length > 0 && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                  {currentMatchIndex + 1} / {matches.length}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateMatch('prev')}
-                  disabled={matches.length === 0}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateMatch('next')}
-                  disabled={matches.length === 0}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
           </div>
 
           {/* Replace Section */}
