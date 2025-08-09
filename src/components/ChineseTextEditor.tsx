@@ -146,7 +146,8 @@ const ChineseTextEditor: React.FC = () => {
         const text = node.text
         for (let i = 0; i < text.length; i++) {
           const ch = text[i]
-          if (ch.trim() === '') continue // ignore whitespace
+          // Skip English letters, numbers, punctuation, and whitespace - only check Chinese characters
+          if (!/[\u4e00-\u9fff]/.test(ch)) continue
           if (!allowedSet.has(ch)) {
             tr.addMark(
               pos + i,
