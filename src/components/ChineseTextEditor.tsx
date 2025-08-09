@@ -36,12 +36,7 @@ const ChineseTextEditor: React.FC = () => {
       SearchHighlight,
       LevelHighlight,
     ],
-    content: `
-      <h2>中文文本编辑器</h2>
-      <p>这是一个支持中文搜索和替换功能的富文本编辑器。您可以在上方搜索框中输入要查找的中文词汇，编辑器会实时高亮显示所有匹配的内容。</p>
-      <p>您也可以使用替换功能来批量或逐个替换文本。例如，尝试搜索"编辑器"或"中文"等词汇。</p>
-      <p>这个编辑器使用了 TipTap 和 ProseMirror 技术，确保了良好的编辑体验和文档状态的完整性。</p>
-    `,
+    content: '',
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none p-4 max-w-none',
